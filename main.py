@@ -1,3 +1,9 @@
+# Microdados - Atribuição de Aulas dos Servidores da Educação Municipal:
+# http://dados.prefeitura.sp.gov.br/pt_PT/dataset/microdados-servidores-atribuicao
+
+# Ideb e Prova Brasil na Rede Municipal de Ensino (2005-2015):
+# http://dados.prefeitura.sp.gov.br/pt_PT/dataset/ideb-e-prova-brasil-na-rede-municipal-de-ensino
+
 class Educa(object):
     def __init__(self):
 
