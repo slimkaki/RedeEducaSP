@@ -167,6 +167,7 @@ class Educa(object):
             
             file.write('graph [\n')
             file.write('  directed 1\n')
+            
 
 
             for professor in self.professores:
@@ -175,16 +176,53 @@ class Educa(object):
                         file.write('  node [\n')
                         file.write('    id "{}"\n'.format(self.professores[professor][ano]))
                         file.write('  ] \n')
+                        escolas.append(self.professores[professor][ano])
             
+            """
+            {
+                "escola1/escola2": 4,
+                "escola7/escola14": 5,
+                ...
+            }
+            """
+            weights = {}
+            for professor in self.professores:
+                for ano in self.professores[professor]:
+                    #se o professor mudou de escola:
+                    if (ano + 1 in self.professores[professor]) and (self.professores[professor][ano] != self.professores[professor][ano+1]):
+                        #soma os pesos das mudancas entre escolas
+                        id_edge = str(self.professores[professor][ano]) + "/" + str(self.professores[professor][ano+1])
+                        if (id_edge not in weights):
+                            weights[id_edge] = 1
+                        else:
+                            weights[id_edge] += 1
+            
+            for edge in weights:
+                ids = edge.split("/")
+                source, target = ids[0], ids[1]
+                weight = weights[edge]
+                file.write('  edge [\n')
+                file.write('    source "{}"\n'.format(source))
+                file.write('    target "{}"\n'.format(target))
+                file.write('    weight "{}"\n'.format(weight))
+                file.write('  ]\n')
+            # for professor in self.professores:
+            #     for ano in self.professores[professor]:
+            #         if (ano+1 in self.professores[professor]) and (self.professores[professor][ano] != self.professores[professor][ano+1]):
+
+                        # file.write('  edge [\n')
+                        # file.write('    source "{}"\n'.format(self.professores[professor][ano]))
+                        # file.write('    target "{}"\n'.format(self.professores[professor][ano+1]))
+                        # file.write('    weight "{}"\n'.format(self.professores[professor][ano+1]))
+                        
+                        # file.write('  ]\n')
+                        
+                        
             file.write(']\n')
+    
 
+    # def getNotaEscola(self):
 
-
-
-                                        
-                            
-        
-            
 
     def start(self):
         self.getSchools()
@@ -199,5 +237,7 @@ if __name__ == '__main__':
     ed.start()
     ed.makeConnections()
     #print(ed.professores)
-    print("elle boba")
+    print("leo bobo")
 #EU ODEIO O LEONARDO     
+
+#Oi genteeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee uwu >.>
