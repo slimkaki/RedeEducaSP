@@ -4,6 +4,8 @@
 # Índice de Desenvolvimento da Educação Paulistana (IDEP) (2018-2019):
 # http://dados.prefeitura.sp.gov.br/pt_PT/dataset/idep
 
+
+
 """
 IDEB:
 Bater o codigo da escola com o 
@@ -18,10 +20,10 @@ import json
 class EducacaoData(object):
     def __init__(self):
 
-        self.data = {"atribuicao2010.csv": 2010, "atribuicao2011.csv": 2011 , "atribuicao2012.csv": 2012,
-                    "atribuicao2013.csv": 2013, "atribuicao2014.csv": 2014, "atribuicao2015.csv": 2015}#, 
-                    #"atribuicao2016.csv": 2016, "atribuicao2017.csv": 2017, "atribuicao2018.csv": 2018, 
-                    #"atribuicaocomaulas2019.csv": 2019}
+        self.data = {#"atribuicao2010.csv": 2010, "atribuicao2011.csv": 2011 , "atribuicao2012.csv": 2012,
+                    "atribuicao2013.csv": 2013, "atribuicao2014.csv": 2014, "atribuicao2015.csv": 2015, 
+                    "atribuicao2016.csv": 2016, "atribuicao2017.csv": 2017 , "atribuicao2018.csv": 2018, 
+                    "atribuicao2019.csv": 2019}
         self.data_idep = ["idepanosiniciaisescolas2019FAIXA_1.csv", 
         "idepanosiniciaisescolas2019FAIXA_2.csv", 
         "idepanosiniciaisescolas2019FAIXA_3.csv", 
@@ -40,8 +42,9 @@ class EducacaoData(object):
         self.connections = {} 
         self.escolas = []
         self.idep = {}
-        self.totalTeachers = {}
-        self.totalTeachersValues = {}
+        self.icg = {}
+        self.ren = {}
+
     
 
     def getDesempenho(self, tabela):
@@ -55,11 +58,22 @@ class EducacaoData(object):
                 #Estamos zerando a nota de escolas que tem * na nota
                 desempenho_2018 = float(row[7].replace(",", ".").replace('"',"").replace("*","0"))
                 desempenho_2019 = float(row[8].replace(",", ".").replace('"',"").replace("*","0"))
+                
+                icg = int(row[5])
+
+                renda = int(row[4])
+                
                 id_escola = row[0]
                 id_escola = id_escola.lstrip("0")
     
                 if id_escola not in self.escolas:
                     continue
+
+                if icg not in self.icg:
+                    self.icg[id_escola] = icg
+                
+                if renda not in self.ren:
+                    self.ren[id_escola] = renda
 
                 if id_escola not in self.idep:
                     self.idep[id_escola] = (desempenho_2018+desempenho_2019)/4
@@ -89,7 +103,7 @@ class EducacaoData(object):
 
             escolas_atuais = []
 
-            if self.data[tabela] == 2010:
+            if self.data[tabela] == 2013:
                 with open(tabela) as file:
                     indexes = file.readline()
                     indexes = indexes.split(";")
@@ -118,42 +132,6 @@ class EducacaoData(object):
                         if escola not in escolas_atuais:
                             self.escolas.remove(escola)
 
-    def getTotalOfTeachers(self, tabela, ano):
-        """
-        self.totalTeachers = {
-                                "escola1" : {
-                                            2010: [prof1, prof2, prof3],
-                                            2011: [prof2, prof3, prof4, prof5],
-                                            ...
-                                            },  
-                                "escola2" : {
-                                        2010: [prof1, prof2, prof3, prof4, prof5],
-                                            ...
-                                            },
-                                ...
-                            }
-        """
-    
-        with open(tabela) as file:
-
-            indexes = file.readline()
-            indexes = indexes.split(";")
-            professor_index, escola_index = self.getIndexes(indexes)
-
-            for i, row in enumerate(reader(file), 2):
-                # row = row[0].replace(";", ",").split(",")
-                row = row[0].replace(";;", ";null;").split(";")
-                id_professor  = row[professor_index]
-                id_escola = row[escola_index]
-
-                if id_escola not in self.totalTeachers:
-                    self.totalTeachers[id_escola]={
-                        ano : [id_professor]
-                    }
-                elif ano not in self.totalTeachers[id_escola]:
-                    self.totalTeachers[id_escola][ano] = [id_professor]
-                elif id_professor not in self.totalTeachers[id_escola][ano]:
-                    self.totalTeachers[id_escola][ano].append(id_professor)
 
         
     
@@ -195,20 +173,10 @@ class EducacaoData(object):
     def getAllCSV(self):
         for d in self.data.keys():
             self.getCSV(d, self.data[d])
-            self.getTotalOfTeachers(d, self.data[d])
-
-        for escola in self.totalTeachers:
-            for ano in self.totalTeachers[escola]:
-                if escola not in self.totalTeachersValues:
-                    self.totalTeachersValues[escola] = len(self.totalTeachers[escola][ano])
-                else:
-                    self.totalTeachersValues[escola] += len(self.totalTeachers[escola][ano])
-            
-            self.totalTeachersValues[escola] = self.totalTeachersValues[escola]/(len(self.data))
 
     def makeConnections(self):
         escolas = []
-        with open('escolas.gml', 'w') as file:
+        with open('bbb.gml', 'w') as file:
             
             file.write('graph [\n')
             file.write('  directed 1\n')
@@ -220,7 +188,8 @@ class EducacaoData(object):
                     if self.professores[professor][ano] not in escolas:
                         file.write('  node [\n')
                         file.write('    id "{}"\n'.format(self.professores[professor][ano]))
-                        file.write('    professores "{}"\n'.format(self.totalTeachersValues[self.professores[professor][ano]]))
+                        file.write('    icg "{}"\n'.format(self.icg[self.professores[professor][ano]]))
+                        file.write('    ren "{}"\n'.format(self.ren[self.professores[professor][ano]]))
                         file.write('  ] \n')
                         escolas.append(self.professores[professor][ano])
             
